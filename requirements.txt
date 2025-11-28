@@ -1,0 +1,31 @@
+# Core data analysis
+pandas
+numpy
+
+# Geospatial analysis
+geopandas
+shapely
+pyproj
+rtree
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# Jupyter and interactive tools
+jupyter
+jupyterlab
+ipykernel
+ipywidgets
+
+# Data formats
+openpyxl
+xlrd
+pyarrow
+
+# Code quality
+black
+flake8
+
+boto3
