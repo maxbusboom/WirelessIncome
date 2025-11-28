@@ -57,6 +57,14 @@ else
     echo "✓ uv is already installed."
 fi
 
+# Install wget
+if ! command -v wget &>/dev/null; then
+    echo "Installing wget..."
+    brew install wget
+else
+    echo "✓ wget is already installed."
+fi
+
 # Install Python 3.12
 echo "Checking Python 3.12..."
 if ! brew list python@3.12 &>/dev/null; then
@@ -66,16 +74,11 @@ else
     echo "✓ Python 3.12 is already installed."
 fi
 
-# Upgrade pip and install dependencies from requirements.txt
-echo "Upgrading pip and installing Python dependencies..."
-python3.12 -m pip install --upgrade pip
-
-if [ -f "requirements.txt" ]; then
-    echo "Installing Python packages from requirements.txt..."
-    python3.12 -m pip install -r requirements.txt
-else
-    echo "⚠ requirements.txt not found. Skipping Python dependency installation."
-fi
+# Note: Skip pip/requirements.txt installation here
+# Use the setup-uv-env.sh script to set up the virtual environment and install packages with uv
+echo ""
+echo "Python 3.12 installation complete."
+echo "Run ./.devcontainer/setup-uv-env.sh to set up your virtual environment and install packages."
 
 echo ""
 echo "✅ All dependencies installed successfully!"
