@@ -4,9 +4,15 @@ Defines common paths and settings used across notebooks.
 """
 
 from pathlib import Path
+import sys
+
 
 # Project root directory (where this config.py file is located)
 project_root = Path(__file__).parent
+
+# Add project root to path and import library
+sys.path.insert(0, str(project_root))
+
 
 # Data directory (in the same directory as project root)
 data_dir = project_root / "data"
