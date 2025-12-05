@@ -45,3 +45,6 @@ https://pmc.ncbi.nlm.nih.gov/articles/PMC8449832/
 
 https://www.fcc.gov/form-477-census-tract-data-internet-access-services
 Includes data on residential fixed internet access connections per 1,000 households by census tract for both service over 200 kbps and higher speed tiers.
+
+
+The data file `src/tract_map_dec_2023.csv` is the FCC form 477 report of the number of providers per tract, to assess internet acess availability. See their [web page for more details](https://www.fcc.gov/form-477-census-tract-data-internet-access-services). 
