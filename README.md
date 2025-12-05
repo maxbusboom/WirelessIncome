@@ -36,3 +36,8 @@ To get more information about the Census API for that table.
 * Neighborhood level data: https://nanda.isr.umich.edu/data/
 * Social Vulnerability Index: https://svi.cdc.gov/dataDownloads/data-download.html
 * Rural / Urban Codes: https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes
+
+
+Internet Access, Social Risk Factors, and Web-Based Social Support Seeking Behavior: Assessing Correlates of the “Digital Divide” Across Neighborhoods in The State of Maryland
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC8449832/
