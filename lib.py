@@ -69,29 +69,46 @@ def download_ookla_files(files_df, years, quarters, service_type, data_dir, s3):
 
 def get_ookla_data(files_df, year, quarter, service_type, data_dir):
     """
-    Load both parquet and shapefile data for a given year, quarter, and service type.
+    Load one or more Ookla parquet files and return a concatenated DataFrame.
 
     Args:
         files_df: DataFrame with file metadata (path, year, quarter, service_type, kind)
-        year: int, the year to load
-        quarter: int, the quarter (1-4) to load
-        service_type: 'fixed' or 'mobile'
+        year: int or list[int], the year(s) to load
+        quarter: int or list[int], the quarter(s) (1-4) to load
+        service_type: str or list[str], service types ('fixed', 'mobile') to load
         data_dir: directory path where downloaded files are stored
 
     Returns:
-        DataFrame with Ookla performance data, or None if not found
+        DataFrame with Ookla performance data, or None if no files are found
     """
-    # Filter for the specific year, quarter, and service type
+
+    def _to_list(value, label):
+        if value is None:
+            raise ValueError(f"{label} cannot be None")
+        if isinstance(value, (list, tuple, set, pd.Series, pd.Index)):
+            values = list(value)
+        else:
+            values = [value]
+        if not values:
+            raise ValueError(f"{label} cannot be empty")
+        return values
+
+    years = _to_list(year, "year")
+    quarters = _to_list(quarter, "quarter")
+    service_types = _to_list(service_type, "service_type")
+
     mask = (
-        (files_df["year"] == year)
-        & (files_df["quarter"] == quarter)
-        & (files_df["service_type"] == service_type)
+        files_df["year"].isin(years)
+        & files_df["quarter"].isin(quarters)
+        & files_df["service_type"].isin(service_types)
     )
-    selection = files_df.loc[mask]
+    selection = files_df.loc[mask].sort_values(["service_type", "year", "quarter"])
 
     if selection.empty:
         print(
-            f"No files found for year={year}, quarter={quarter}, service_type={service_type}"
+            "No files found for year={years}, quarter={quarters}, service_type={service_types}".format(
+                years=years, quarters=quarters, service_types=service_types
+            )
         )
         return None
 
@@ -104,20 +121,32 @@ def get_ookla_data(files_df, year, quarter, service_type, data_dir):
 
         if not os.path.exists(local_path):
             print(f"ERROR: {filename} not found in {data_dir}")
-            print(f"  Please download first using download_ookla_files()")
+            print("  Please download first using download_ookla_files()")
             return None
 
         return local_path
 
-    # Load parquet data
-    parquet_path = get_local_path(selection.iloc[0]["path"])
-    if not parquet_path:
+    frames = []
+    for _, row in selection.iterrows():
+        parquet_path = get_local_path(row["path"])
+        if not parquet_path:
+            continue
+
+        print(f"Loading {os.path.basename(parquet_path)}...")
+        chunk = pd.read_parquet(parquet_path)
+        chunk = chunk.copy()
+        chunk["ookla_year"] = row["year"]
+        chunk["ookla_quarter"] = row["quarter"]
+        chunk["ookla_service_type"] = row["service_type"]
+        frames.append(chunk)
+        print(f"  Loaded {len(chunk)} rows")
+
+    if not frames:
+        print("No parquet files could be loaded; check that they are downloaded locally.")
         return None
 
-    print(f"Loading {os.path.basename(parquet_path)}...")
-    df = pd.read_parquet(parquet_path)
-    print(f"  Loaded {len(df)} rows")
-
+    df = pd.concat(frames, ignore_index=True, sort=False)
+    print(f"Concatenated {len(frames)} files -> {len(df)} total rows")
     return df
 
 

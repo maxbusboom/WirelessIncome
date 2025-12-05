@@ -19,3 +19,20 @@ uv sync
 
 Then in VSCode command bar, select `Python: Select Interpreter` to select the
 interpreter in your project .venv dir. 
+
+
+## Census Data
+
+Use  https://censusreporter.org to find tables, then Google for:
+
+```
+census api <table> 
+```
+
+To get more information about the Census API for that table. 
+
+## More tract level data
+
+* Neighborhood level data: https://nanda.isr.umich.edu/data/
+* Social Vulnerability Index: https://svi.cdc.gov/dataDownloads/data-download.html
+* Rural / Urban Codes: https://www.ers.usda.gov/data-products/rural-urban-commuting-area-codes

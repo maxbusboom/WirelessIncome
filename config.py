@@ -20,8 +20,6 @@ data_dir = project_root / "data"
 # Ensure data directory exists
 data_dir.mkdir(exist_ok=True)
 
-# Convert to string for compatibility
-data_dir = str(data_dir)
 
 print(f"Project root: {project_root}")
 print(f"Data directory: {data_dir}")
