@@ -41,3 +41,7 @@ To get more information about the Census API for that table.
 Internet Access, Social Risk Factors, and Web-Based Social Support Seeking Behavior: Assessing Correlates of the “Digital Divide” Across Neighborhoods in The State of Maryland
 
 https://pmc.ncbi.nlm.nih.gov/articles/PMC8449832/
+
+
+https://www.fcc.gov/form-477-census-tract-data-internet-access-services
+Includes data on residential fixed internet access connections per 1,000 households by census tract for both service over 200 kbps and higher speed tiers.
