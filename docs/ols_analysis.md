@@ -2,38 +2,45 @@
 
 ## Executive Summary
 
-This analysis examines the relationship between household income, geographic classification, and fixed broadband download speeds at the census tract level using Q1 2022 data. The model includes 82,249 observations with state, county, and urban classification fixed effects.
+This analysis examines the relationship between household income, population
+density, geographic classification, and fixed broadband download speeds at the
+census tract level using Q1 2022 data. The model includes 81,291 observations
+with county and urban classification fixed effects.
 
-**Key Finding:** Geography—not income—is the dominant predictor of internet speed. The urban-rural divide accounts for speed differences of up to 91 Mbps, while doubling household income yields only ~6.5 Mbps improvement.
+**Key Finding:** Geography—not income—is the dominant predictor of internet
+speed. The urban-rural divide accounts for speed differences of up to 89 Mbps,
+while doubling household income yields only ~4 Mbps improvement. Population
+density has an effect comparable toß income.
 
 ---
 
 ## Model Specification
 
 ```
-avg_d_kbps_fixed ~ median_income + C(urban_core_type) + C(state) + C(county)
+avg_d_kbps_fixed ~ median_income + pop_density + C(urban_core_type) + C(county)
 ```
 
 | Specification      | Value                               |
 | ------------------ | ----------------------------------- |
 | Dependent Variable | Average fixed download speed (kbps) |
-| Observations       | 82,249                              |
-| Model Parameters   | 362                                 |
+| Observations       | 81,291                              |
+| Model Parameters   | 314                                 |
 | Covariance Type    | HC3 (heteroskedasticity-robust)     |
 
 ---
 
 ## Model Fit Statistics
 
-| Metric             | Value       | Interpretation                                      |
-| ------------------ | ----------- | --------------------------------------------------- |
-| R-squared          | 0.515       | Model explains 51.5% of variance in download speeds |
-| Adjusted R-squared | 0.513       | Adjusted for number of predictors                   |
-| F-statistic        | 0.555       | ⚠️ Problematic (see diagnostics)                     |
-| Prob (F-statistic) | 0.456       | ⚠️ Not significant at conventional levels            |
-| Log-Likelihood     | -9.96 × 10⁵ | —                                                   |
-| AIC                | 1.993 × 10⁶ | —                                                   |
-| BIC                | 1.997 × 10⁶ | —                                                   |
+| Metric             | Value       | Interpretation                                    |
+| ------------------ | ----------- | ------------------------------------------------- |
+| R-squared          | 0.460       | Model explains 46% of variance in download speeds |
+| Adjusted R-squared | 0.458       | Adjusted for number of predictors                 |
+| F-statistic        | 428.5       | Model is jointly significant                      |
+| Prob (F-statistic) | 0.000       | Highly significant                                |
+| Condition Number   | 299         | Acceptable (no severe multicollinearity)          |
+| Log-Likelihood     | -9.88 × 10⁵ | —                                                 |
+| AIC                | 1.977 × 10⁶ | —                                                 |
+| BIC                | 1.980 × 10⁶ | —                                                 |
 
 ---
 
@@ -41,15 +48,26 @@ avg_d_kbps_fixed ~ median_income + C(urban_core_type) + C(state) + C(county)
 
 ### Income Effect
 
-| Variable            | Coefficient | Std. Error | z     | P>\|z\| | 95% CI          |
-| ------------------- | ----------- | ---------- | ----- | ------- | --------------- |
-| median_income (log) | 9,329.9     | 364.4      | 25.60 | 0.000   | [8,616, 10,044] |
+| Variable            | Coefficient | Std. Error | z     | P>\|z\| | 95% CI         |
+| ------------------- | ----------- | ---------- | ----- | ------- | -------------- |
+| median_income (log) | 5,677.0     | 172.4      | 32.93 | 0.000   | [5,339, 6,015] |
 
 **Interpretation:** Since income is log-transformed:
-- **10% increase in income** → +890 kbps (~0.9 Mbps faster)
-- **Doubling income** → +6,467 kbps (~6.5 Mbps faster)
+- **10% increase in income** → +542 kbps (~0.5 Mbps faster)
+- **Doubling income** → +3,935 kbps (~4 Mbps faster)
 
 The income effect is statistically significant but economically modest relative to geographic factors.
+
+### Population Density Effect
+
+| Variable          | Coefficient | Std. Error | z     | P>\|z\| | 95% CI         |
+| ----------------- | ----------- | ---------- | ----- | ------- | -------------- |
+| pop_density (log) | 6,454.9     | 197.2      | 32.73 | 0.000   | [6,068, 6,841] |
+
+**Interpretation:** Population density has a similar magnitude effect to income:
+- **Doubling population density** → +4,474 kbps (~4.5 Mbps faster)
+
+This reflects the economics of infrastructure investment—denser areas justify greater capital expenditure per square mile.
 
 ### Urban-Rural Classification
 
@@ -58,183 +76,186 @@ Reference category: **Metro Core**
 | Classification  | Coefficient | Std. Error | z       | P>\|z\| | Effect (Mbps) |
 | --------------- | ----------- | ---------- | ------- | ------- | ------------- |
 | Metro Core      | (baseline)  | —          | —       | —       | 0             |
-| Micro Core      | -26,300     | 711        | -36.99  | 0.000   | **-26 Mbps**  |
-| Small Town Core | -47,750     | 1,221      | -39.10  | 0.000   | **-48 Mbps**  |
-| Rural           | -90,970     | 529        | -172.07 | 0.000   | **-91 Mbps**  |
+| Micro Core      | -27,030     | 733        | -36.87  | 0.000   | **-27 Mbps**  |
+| Small Town Core | -50,340     | 1,270      | -39.65  | 0.000   | **-50 Mbps**  |
+| Rural           | -89,440     | 562        | -159.18 | 0.000   | **-89 Mbps**  |
 
-**Interpretation:** Holding income and location constant:
-- Rural tracts average **91 Mbps slower** than metro core tracts
-- Small town tracts average **48 Mbps slower** than metro core tracts
-- Micropolitan tracts average **26 Mbps slower** than metro core tracts
+**Interpretation:** Holding income, density, and county constant:
+- Rural tracts average **89 Mbps slower** than metro core tracts
+- Small town tracts average **50 Mbps slower** than metro core tracts
+- Micropolitan tracts average **27 Mbps slower** than metro core tracts
 
-The urban-rural hierarchy is stark and precisely estimated (all p < 0.001).
-
----
-
-## State Fixed Effects
-
-Reference category: **Alabama (FIPS 01)**
-
-### Fastest States (Relative to Alabama)
-
-| Rank | State         | FIPS | Coefficient | Effect (Mbps) | P-value |
-| ---- | ------------- | ---- | ----------- | ------------- | ------- |
-| 1    | New Jersey    | 34   | +34,940     | +35           | <0.001  |
-| 2    | Delaware      | 10   | +33,590     | +34           | <0.001  |
-| 3    | New Hampshire | 33   | +32,230     | +32           | <0.001  |
-| 4    | Rhode Island  | 44   | +24,720     | +25           | <0.001  |
-| 5    | Maryland      | 24   | +23,140     | +23           | <0.001  |
-| 6    | Tennessee     | 47   | +21,100     | +21           | <0.001  |
-
-### Slowest States (Relative to Alabama)
-
-| Rank | State       | FIPS | Coefficient | Effect (Mbps) | P-value |
-| ---- | ----------- | ---- | ----------- | ------------- | ------- |
-| 1    | Puerto Rico | 72   | -107,100    | -107          | <0.001  |
-| 2    | Idaho       | 16   | -46,300     | -46           | <0.001  |
-| 3    | Wyoming     | 56   | -45,880     | -46           | <0.001  |
-| 4    | New Mexico  | 35   | -43,460     | -43           | <0.001  |
-| 5    | Montana     | 30   | -42,730     | -43           | <0.001  |
-| 6    | Iowa        | 19   | -33,060     | -33           | <0.001  |
-
-### States Not Significantly Different from Alabama (p > 0.05)
-
-- District of Columbia (11)
-- Florida (12)
-- Indiana (18)
-- Kentucky (21)
-- Maine (23)
-- Mississippi (28)
-- North Dakota (38)
-- Vermont (50)
-- West Virginia (54)
+The urban-rural hierarchy is stark and precisely estimated (all p < 0.001). Note that these effects persist even after controlling for population density, indicating that urban classification captures infrastructure investment patterns beyond what density alone explains.
 
 ---
 
-## County Effects
+## County Fixed Effects
 
-The model includes 309 county fixed effects. Selected notable effects:
+The model includes 311 county fixed effects (reference county omitted). Selected notable effects:
 
-### Largest Negative County Effects
+### Counties with Largest Positive Effects (vs. Reference)
 
 | County FIPS | Coefficient | Effect (Mbps) | P-value |
 | ----------- | ----------- | ------------- | ------- |
-| 461         | -112,300    | -112          | <0.001  |
-| 455         | -111,400    | -111          | <0.001  |
-| 503         | -106,000    | -106          | <0.001  |
-| 750         | -104,000    | -104          | <0.001  |
-| 483         | -104,100    | -104          | <0.001  |
+| 036         | +112,500    | +113          | 0.014   |
+| 471         | +64,710     | +65           | <0.001  |
+| 570         | +61,580     | +62           | 0.001   |
+| 530         | +58,570     | +59           | 0.002   |
+| 640         | +60,330     | +60           | 0.022   |
 
-These represent severely underserved counties with speeds more than 100 Mbps below the reference county.
+### Counties with Largest Negative Effects (vs. Reference)
+
+| County FIPS | Coefficient | Effect (Mbps) | P-value |
+| ----------- | ----------- | ------------- | ------- |
+| 461         | -92,790     | -93           | <0.001  |
+| 455         | -91,730     | -92           | <0.001  |
+| 503         | -85,590     | -86           | <0.001  |
+| 483         | -84,530     | -85           | <0.001  |
+| 750         | -83,120     | -83           | <0.001  |
+
+These severely underserved counties have speeds 80-90+ Mbps below the reference county, representing critical infrastructure gaps.
 
 ---
 
-## Diagnostic Concerns
+## Effect Size Comparison
 
-### 1. Severe Multicollinearity
+To illustrate the relative magnitude of predictors:
 
-| Indicator           | Value        | Threshold | Assessment           |
-| ------------------- | ------------ | --------- | -------------------- |
-| Condition Number    | 6.88 × 10¹⁴  | <30       | ⛔ **Critical**       |
-| Smallest Eigenvalue | 2.19 × 10⁻²³ | —         | Near-singular matrix |
+| Scenario                           | Speed Change  |
+| ---------------------------------- | ------------- |
+| Move from Rural to Metro Core      | **+89 Mbps**  |
+| Move from worst to best county     | **+205 Mbps** |
+| Move from Small Town to Metro Core | **+50 Mbps**  |
+| Move from Micro Core to Metro Core | **+27 Mbps**  |
+| Double population density          | **+4.5 Mbps** |
+| Double household income            | **+4 Mbps**   |
 
-**Problem:** The model includes both state and county fixed effects, but counties nest within states. This creates perfect or near-perfect collinearity. Evidence includes:
-- Connecticut (FIPS 09) coefficient: 9.13 × 10¹⁴ with SE of 1.23 × 10¹⁵
-- Several county coefficients with SEs in the 10⁷ range
-- F-statistic not significant despite highly significant individual coefficients
+**Key insight:** A rural household would need to increase income by approximately **22x** (e.g., from $50k to $1.1M) to offset the rural penalty through income alone—an impossibility for virtually all families. Geography is destiny.
 
-**Recommendation:** Remove state fixed effects and retain only county fixed effects, OR cluster standard errors at county level without county dummies:
+---
 
-```python
-# Option A: County FE only
-model = smf.ols('avg_d_kbps_fixed ~ median_income + C(urban_core_type) + C(county)', 
-                data=df).fit(cov_type='HC3')
+## Diagnostic Assessment
 
-# Option B: State FE with clustered SEs at county
-model = smf.ols('avg_d_kbps_fixed ~ median_income + C(urban_core_type) + C(state)', 
-                data=df).fit(cov_type='cluster', cov_kwds={'groups': df['county_fips']})
-```
+### Multicollinearity
 
-### 2. Spatial Autocorrelation
+| Indicator        | Value | Threshold | Assessment   |
+| ---------------- | ----- | --------- | ------------ |
+| Condition Number | 299   | <1,000    | ✅ Acceptable |
 
-| Indicator     | Value | Ideal | Assessment                 |
-| ------------- | ----- | ----- | -------------------------- |
-| Durbin-Watson | 1.245 | ~2.0  | ⚠️ Positive autocorrelation |
+Dropping state fixed effects resolved the severe multicollinearity from the previous specification.
 
-Neighboring tracts have correlated residuals. Even with county fixed effects, within-county spatial dependence persists.
+### Spatial Autocorrelation
 
-### 3. Non-Normal Residuals
+| Indicator     | Value | Ideal | Assessment                         |
+| ------------- | ----- | ----- | ---------------------------------- |
+| Durbin-Watson | 1.139 | ~2.0  | ⚠️ Positive autocorrelation remains |
 
-| Test        | Statistic | P-value | Assessment              |
-| ----------- | --------- | ------- | ----------------------- |
-| Omnibus     | 1,473.9   | 0.000   | Reject normality        |
-| Jarque-Bera | 3,046.6   | 0.000   | Reject normality        |
-| Skewness    | 0.034     | —       | Minimal                 |
-| Kurtosis    | 3.940     | —       | Fat tails (leptokurtic) |
+Neighboring tracts still have correlated residuals. County fixed effects help but don't fully capture within-county spatial dependence. For publication, consider:
+- Clustering standard errors at a finer geographic level
+- Spatial lag or spatial error models (PySAL/spreg)
 
-With n = 82,249, OLS estimates remain consistent, but confidence intervals may be unreliable. Consider log-transforming the dependent variable.
+### Residual Normality
+
+| Test        | Statistic | P-value | Assessment          |
+| ----------- | --------- | ------- | ------------------- |
+| Omnibus     | 1,389.9   | 0.000   | Reject normality    |
+| Jarque-Bera | 2,636.8   | 0.000   | Reject normality    |
+| Skewness    | 0.093     | —       | Minimal (near zero) |
+| Kurtosis    | 3.863     | —       | Slightly fat tails  |
+
+With n = 81,291, OLS estimates remain consistent by the Central Limit Theorem. The slight positive skew and excess kurtosis suggest some outlier tracts with unusually high or low speeds. Consider:
+- Log-transforming the dependent variable for elasticity interpretation
+- Winsorizing extreme values
 
 ---
 
 ## Substantive Interpretation
 
-### The Digital Divide is Geographic, Not Economic
+### The Digital Divide is Fundamentally Geographic
 
-To illustrate the relative magnitude of effects:
+This analysis confirms that internet speed disparities in the United States are primarily determined by where people live, not how much they earn. Three key patterns emerge:
 
-| Scenario                        | Speed Change |
-| ------------------------------- | ------------ |
-| Move from Rural to Metro Core   | +91 Mbps     |
-| Move from Alabama to New Jersey | +35 Mbps     |
-| Double household income         | +6.5 Mbps    |
+1. **The urban-rural gap is massive and persistent.** Rural tracts are 89 Mbps slower than metro cores even after controlling for income, density, and county. This gap exceeds what most households need for basic broadband (25 Mbps by FCC definition).
 
-A rural household would need to increase income by approximately **14x** to offset the rural penalty through income alone—an impossibility for most families.
+2. **Population density matters, but not enough.** Denser areas have faster internet, reflecting infrastructure economics. However, the urban classification effects persist after controlling for density, suggesting that investment decisions follow administrative boundaries and market definitions, not just density gradients.
+
+3. **Income effects are real but small.** Wealthier tracts have modestly faster internet, possibly reflecting ability to pay for premium tiers or correlation with housing stock quality. But the effect is dwarfed by location factors.
 
 ### Policy Implications
 
-1. **Infrastructure investment** in rural and underserved areas would have far greater impact than income-based subsidies
-2. **State-level variation** suggests policy and regulatory environments matter
-3. **Puerto Rico** faces a 107 Mbps deficit requiring targeted intervention
+1. **Infrastructure investment** in rural and small-town areas would have far greater impact than income-based subsidies for internet access.
+
+2. **County-level variation** is substantial (205 Mbps spread), suggesting that local regulatory environments, ISP competition, and historical investment patterns matter significantly.
+
+3. **The "last mile" problem** is real—even controlling for density, rural classification carries a large penalty, indicating that sparse population alone doesn't fully explain underinvestment.
 
 ---
 
-## Recommendations for Model Improvement
+## Technical Notes
 
-1. **Fix multicollinearity:** Use county OR state fixed effects, not both
-2. **Address spatial autocorrelation:** Consider spatial lag/error models (PySAL/spreg)
-3. **Add predictors:** ISP competition, fiber availability, population density
-4. **Log-transform DV:** May improve residual normality and provide elasticity interpretation
-5. **Report separately:** Present urban effects and geographic effects in separate tables for clarity
+### Variables
+
+| Variable         | Description                                  | Transformation            |
+| ---------------- | -------------------------------------------- | ------------------------- |
+| avg_d_kbps_fixed | Mean fixed broadband download speed by tract | None (kbps)               |
+| median_income    | Tract median household income                | Natural log               |
+| pop_density      | Population per square mile                   | Natural log               |
+| urban_core_type  | RUCA-based classification                    | Categorical (4 levels)    |
+| county           | County FIPS code                             | Categorical fixed effects |
+
+### Model Comparison
+
+| Specification                     | R²    | Condition No. | F-stat (p)    |
+| --------------------------------- | ----- | ------------- | ------------- |
+| Income + Urban + State + County   | 0.515 | 6.88 × 10¹⁴   | 0.56 (0.456)  |
+| Income + Density + Urban + County | 0.460 | 299           | 428.5 (0.000) |
+
+The simpler model (without state effects) is preferred due to:
+- Resolved multicollinearity
+- Significant F-statistic
+- Interpretable county effects
+- Stable coefficient estimates
 
 ---
 
-## Appendix: Model Output
+## Appendix: Full Model Output
 
 ```
-Dep. Variable:       avg_d_kbps_fixed   R-squared:                       0.515
-Model:                            OLS   Adj. R-squared:                  0.513
-No. Observations:               82249   Covariance Type:                  HC3
-Df Model:                         362   Condition No.:                6.88e+14
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:       avg_d_kbps_fixed   R-squared:                       0.460
+Model:                            OLS   Adj. R-squared:                  0.458
+Method:                 Least Squares   F-statistic:                     428.5
+Date:                Sun, 07 Dec 2025   Prob (F-statistic):               0.00
+Time:                        21:30:32   Log-Likelihood:            -9.8827e+05
+No. Observations:               81291   AIC:                         1.977e+06
+Df Residuals:                   80976   BIC:                         1.980e+06
+Df Model:                         314                                         
+Covariance Type:                  HC3                                         
 
 Key Coefficients:
-                                        coef      std err       P>|z|
----------------------------------------------------------------------------
-Intercept                           1.244e+05     4495.877      0.000
-C(urban)[T.Micro core]             -2.630e+04      711.084      0.000
-C(urban)[T.Rural]                  -9.097e+04      528.674      0.000
-C(urban)[T.Small town core]        -4.775e+04     1221.129      0.000
-median_income                       9329.9180      364.389      0.000
+=========================================================================================================
+                                            coef    std err          z      P>|z|      [0.025      0.975]
+---------------------------------------------------------------------------------------------------------
+Intercept                              2.207e+05   1095.160    201.555      0.000    2.19e+05    2.23e+05
+C(urban_core_type)[T.Micro core]      -2.703e+04    733.155    -36.872      0.000   -2.85e+04   -2.56e+04
+C(urban_core_type)[T.Rural]           -8.944e+04    561.878   -159.175      0.000   -9.05e+04   -8.83e+04
+C(urban_core_type)[T.Small town core] -5.034e+04   1269.647    -39.651      0.000   -5.28e+04   -4.79e+04
+median_income                          5676.9803    172.412     32.927      0.000    5339.059    6014.901
+pop_density                            6454.8773    197.230     32.728      0.000    6068.314    6841.441
 
 Diagnostics:
-  Durbin-Watson:     1.245
-  Omnibus:           1473.876 (p=0.000)
-  Jarque-Bera:       3046.581 (p=0.000)
+==============================================================================
+Omnibus:                     1389.933   Durbin-Watson:                   1.139
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             2636.785
+Skew:                           0.093   Prob(JB):                         0.00
+Kurtosis:                       3.863   Cond. No.                         299.
+==============================================================================
 
 Notes:
 [1] Standard Errors are heteroscedasticity robust (HC3)
-[2] Severe multicollinearity detected - design matrix near-singular
 ```
 
 ---
 
-*Analysis conducted December 2025. Data source: FCC/Ookla speed test data, Q1 2022.*
+*Analysis conducted December 2025. Data source: Ookla/M-Lab speed test data merged with ACS demographic data, Q1 2022.*
