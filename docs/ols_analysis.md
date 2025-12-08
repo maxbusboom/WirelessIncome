@@ -2,15 +2,9 @@
 
 ## Executive Summary
 
-This analysis examines the relationship between household income, population
-density, geographic classification, and fixed broadband download speeds at the
-census tract level using Q1 2022 data. The model includes 81,291 observations
-with county and urban classification fixed effects.
+This analysis examines the relationship between household income, population density, geographic classification, and fixed broadband download speeds at the census tract level using Q1 2022 data. The model includes 81,291 observations with county and urban classification fixed effects.
 
-**Key Finding:** Geography—not income—is the dominant predictor of internet
-speed. The urban-rural divide accounts for speed differences of up to 89 Mbps,
-while doubling household income yields only ~4 Mbps improvement. Population
-density has an effect comparable to income.
+**Key Finding:** Geography—not income—is the dominant predictor of internet speed. The urban-rural divide accounts for speed differences of up to 89 Mbps, while a one standard deviation increase in income yields only ~6 Mbps improvement. Population density has a comparable effect to income.
 
 ---
 
@@ -48,26 +42,39 @@ avg_d_kbps_fixed ~ median_income + pop_density + C(urban_core_type) + C(county)
 
 ### Income Effect
 
-| Variable            | Coefficient | Std. Error | z     | P>\|z\| | 95% CI         |
-| ------------------- | ----------- | ---------- | ----- | ------- | -------------- |
-| median_income (log) | 5,677.0     | 172.4      | 32.93 | 0.000   | [5,339, 6,015] |
+| Variable      | Coefficient | Std. Error | z     | P>\|z\| | 95% CI         |
+| ------------- | ----------- | ---------- | ----- | ------- | -------------- |
+| median_income | 5,677.0     | 172.4      | 32.93 | 0.000   | [5,339, 6,015] |
 
-**Interpretation:** Since income is log-transformed:
-- **10% increase in income** → +542 kbps (~0.5 Mbps faster)
-- **Doubling income** → +3,935 kbps (~4 Mbps faster)
+**Interpretation:** Income is log-transformed then standardized to z-scores:
+- **+1 SD in log(income)** → +5,677 kbps (~5.7 Mbps faster)
+- **+2 SD in log(income)** → +11,354 kbps (~11.4 Mbps faster)
+- A tract at the 84th percentile of income has ~5.7 Mbps faster internet than one at the 50th percentile
 
 The income effect is statistically significant but economically modest relative to geographic factors.
 
 ### Population Density Effect
 
-| Variable          | Coefficient | Std. Error | z     | P>\|z\| | 95% CI         |
-| ----------------- | ----------- | ---------- | ----- | ------- | -------------- |
-| pop_density (log) | 6,454.9     | 197.2      | 32.73 | 0.000   | [6,068, 6,841] |
+| Variable    | Coefficient | Std. Error | z     | P>\|z\| | 95% CI         |
+| ----------- | ----------- | ---------- | ----- | ------- | -------------- |
+| pop_density | 6,454.9     | 197.2      | 32.73 | 0.000   | [6,068, 6,841] |
 
-**Interpretation:** Population density has a similar magnitude effect to income:
-- **Doubling population density** → +4,474 kbps (~4.5 Mbps faster)
+**Interpretation:** Population density is standardized to z-scores:
+- **+1 SD in density** → +6,455 kbps (~6.5 Mbps faster)
+- **+2 SD in density** → +12,910 kbps (~12.9 Mbps faster)
 
-This reflects the economics of infrastructure investment—denser areas justify greater capital expenditure per square mile.
+Population density has a slightly larger effect than income. This reflects the economics of infrastructure investment—denser areas justify greater capital expenditure per square mile.
+
+### Comparing Income and Density Effects
+
+Because both variables are z-scored, their coefficients are directly comparable:
+
+| Variable      | Coefficient | Effect per SD |
+| ------------- | ----------- | ------------- |
+| pop_density   | 6,455       | +6.5 Mbps     |
+| median_income | 5,677       | +5.7 Mbps     |
+
+Population density has a **14% larger effect** than income on broadband speeds.
 
 ### Urban-Rural Classification
 
@@ -127,10 +134,10 @@ To illustrate the relative magnitude of predictors:
 | Move from worst to best county     | **+205 Mbps** |
 | Move from Small Town to Metro Core | **+50 Mbps**  |
 | Move from Micro Core to Metro Core | **+27 Mbps**  |
-| Double population density          | **+4.5 Mbps** |
-| Double household income            | **+4 Mbps**   |
+| +1 SD in population density        | **+6.5 Mbps** |
+| +1 SD in log(income)               | **+5.7 Mbps** |
 
-**Key insight:** A rural household would need to increase income by approximately **22x** (e.g., from $50k to $1.1M) to offset the rural penalty through income alone—an impossibility for virtually all families. Geography is destiny.
+**Key insight:** The Rural penalty (-89 Mbps) is equivalent to **15.7 standard deviations** of the income effect. Put another way, a rural tract would need to be nearly 16 SD above average in income to offset the geographic penalty—a statistical impossibility. Geography is destiny.
 
 ---
 
@@ -142,7 +149,7 @@ To illustrate the relative magnitude of predictors:
 | ---------------- | ----- | --------- | ------------ |
 | Condition Number | 299   | <1,000    | ✅ Acceptable |
 
-Dropping state fixed effects resolved the severe multicollinearity from the previous specification.
+Dropping state fixed effects and standardizing continuous variables resolved the multicollinearity from earlier specifications.
 
 ### Spatial Autocorrelation
 
@@ -179,7 +186,7 @@ This analysis confirms that internet speed disparities in the United States are 
 
 2. **Population density matters, but not enough.** Denser areas have faster internet, reflecting infrastructure economics. However, the urban classification effects persist after controlling for density, suggesting that investment decisions follow administrative boundaries and market definitions, not just density gradients.
 
-3. **Income effects are real but small.** Wealthier tracts have modestly faster internet, possibly reflecting ability to pay for premium tiers or correlation with housing stock quality. But the effect is dwarfed by location factors.
+3. **Income effects are real but small.** Wealthier tracts have modestly faster internet, possibly reflecting ability to pay for premium tiers or correlation with housing stock quality. But the effect is dwarfed by location factors—a one standard deviation income advantage buys only 5.7 Mbps, while rural location costs 89 Mbps.
 
 ### Policy Implications
 
@@ -195,25 +202,29 @@ This analysis confirms that internet speed disparities in the United States are 
 
 ### Variables
 
-| Variable         | Description                                  | Transformation            |
-| ---------------- | -------------------------------------------- | ------------------------- |
-| avg_d_kbps_fixed | Mean fixed broadband download speed by tract | None (kbps)               |
-| median_income    | Tract median household income                | Natural log               |
-| pop_density      | Population per square mile                   | Natural log               |
-| urban_core_type  | RUCA-based classification                    | Categorical (4 levels)    |
-| county           | County FIPS code                             | Categorical fixed effects |
+| Variable         | Description                                  | Transformation                 |
+| ---------------- | -------------------------------------------- | ------------------------------ |
+| avg_d_kbps_fixed | Mean fixed broadband download speed by tract | None (kbps)                    |
+| median_income    | Tract median household income                | Log-transformed, then z-scored |
+| pop_density      | Population per square mile                   | Z-scored (no log transform)    |
+| urban_core_type  | RUCA-based classification                    | Categorical (4 levels)         |
+| county           | County FIPS code                             | Categorical fixed effects      |
+
+### Standardization
+
+Both continuous predictors are standardized to z-scores (mean = 0, SD = 1), making their coefficients directly comparable. The coefficient represents the change in download speed (kbps) associated with a one standard deviation increase in the predictor.
 
 ### Model Comparison
 
-| Specification                     | R²    | Condition No. | F-stat (p)    |
-| --------------------------------- | ----- | ------------- | ------------- |
-| Income + Urban + State + County   | 0.515 | 6.88 × 10¹⁴   | 0.56 (0.456)  |
-| Income + Density + Urban + County | 0.460 | 299           | 428.5 (0.000) |
+| Specification                                | R²    | Condition No. | F-stat (p)    |
+| -------------------------------------------- | ----- | ------------- | ------------- |
+| Income + Urban + State + County              | 0.515 | 6.88 × 10¹⁴   | 0.56 (0.456)  |
+| Income + Density + Urban + County (z-scored) | 0.460 | 299           | 428.5 (0.000) |
 
-The simpler model (without state effects) is preferred due to:
+The simpler model (without state effects, with standardized predictors) is preferred due to:
 - Resolved multicollinearity
 - Significant F-statistic
-- Interpretable county effects
+- Interpretable, comparable coefficients
 - Stable coefficient estimates
 
 ---
