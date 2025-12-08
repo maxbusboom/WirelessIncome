@@ -10,7 +10,7 @@ with county and urban classification fixed effects.
 **Key Finding:** Geography—not income—is the dominant predictor of internet
 speed. The urban-rural divide accounts for speed differences of up to 89 Mbps,
 while doubling household income yields only ~4 Mbps improvement. Population
-density has an effect comparable toß income.
+density has an effect comparable to income.
 
 ---
 
